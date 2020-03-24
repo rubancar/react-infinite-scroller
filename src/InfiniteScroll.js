@@ -187,7 +187,11 @@ export default class InfiniteScroll extends Component {
     }
   }
 
-  scrollListener() {
+  async scrollListener() {
+
+    // if we are loading elements just returns until the current execution finishes
+    if(this.loadingMoreItems) return;
+
     const el = this.scrollComponent;
     const scrollEl = window;
     const parentNode = this.getParentElement(el);
@@ -221,7 +225,11 @@ export default class InfiniteScroll extends Component {
       this.beforeScrollTop = parentNode.scrollTop;
       // Call loadMore after detachScrollListener to allow for non-async loadMore functions
       if (typeof this.props.loadMore === 'function') {
-        this.props.loadMore((this.pageLoaded += 1));
+        const currentPage = this.pageLoaded + 1;
+        this.loadingMoreItems = true;
+        await this.props.loadMore(currentPage);
+        this.loadingMoreItems = false;
+        this.pageLoaded = currentPage;
         this.loadMore = true;
       }
     }
